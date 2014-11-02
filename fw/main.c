@@ -20,7 +20,7 @@
 #define REG_RGBLED 0
 
 
-#define RIPPLE_SPRING 4
+#define RIPPLE_SPRING 8
 #define RIPPLE_NODES 62
 #define RIPPLE_DAMP 15
 
@@ -49,7 +49,7 @@ void ripple_iteration(struct ripple *r)
 	int i,j;
 	for(i=1;i<RIPPLE_NODES-1;++i)
 	{
-		int b=(r->rv[i-1]+r->rv[i]+r->rv[i]+r->rv[i+1])>>2;
+		int b=(0+2*r->rv[i-1]+3*r->rv[i]+2*r->rv[i+1])>>3;
 		int acc=(RIPPLE_SPRING*(b-r->rv[i]));
 		r->rvel[i]=(RIPPLE_DAMP*r->rvel[i])>>4;
 		r->rvel[i]+=acc>>4;
@@ -86,19 +86,19 @@ int main(int argc, char **argv)
 		else
 		{
 			int r=lfsr&127;
+			int r2;
 			CYCLE_LFSR
-			if(r<58)
-				ripr.rv[r+1]=65535;
-			else if(r<116)
-				ripg.rv[r-57]=65535;
+			r2=1+(lfsr&63);
+			if(r2>59)
+				r2=59;
+
+			if(r<42)
+				ripr.rv[r2]=65535;
+			else if(r<85)
+				ripg.rv[r2]=65535;
 			else
-			{
-				r=lfsr&63;
-				if(r>58)
-					r=58;
-				ripb.rv[1+r]=65535;
-			}
-			d=32+lfsr&127;
+				ripb.rv[r2]=65535;
+			d=lfsr&255;
 		}
 
 		for(i=0;i<4096;++i)
