@@ -78,11 +78,11 @@ void rain_iteration(struct ripple *r)
 	r->rv[0]=0;
 	for(i=RIPPLE_NODES;i>0;--i)
 	{
-		int t=(r->rv[i]+r->rv[i-1])>>2;
-		if(r->rv[i]<t)
-			r->rv[i]=t;
-		else if(r->rv[i]>256)
-			r->rv[i]-=256;
+		int t=r->rv[i-1];
+		if(r->rv[i]<(t-128))
+			r->rv[i]=t+128;
+		else if(r->rv[i]>512)
+			r->rv[i]-=512;
 		else
 			r->rv[i]=0;
 	}
@@ -97,8 +97,8 @@ void merge_iteration(struct ripple *r)
 	r->rv[RIPPLE_NODES]=0;
 	for(i=1;i<RIPPLE_NODES-1;++i)
 	{
-		unsigned int j=28*r->rv[i]+r->rv[i-1]+r->rv[i+1];
-		r->rv[i]=j>>5;
+		unsigned int j=61*r->rv[i]+r->rv[i-1]+r->rv[i+1];
+		r->rv[i]=j>>6;
 	}
 }
 
@@ -320,13 +320,15 @@ void merge_update()
 
 void rain_update()
 {
-	int i;
+	int i,h;
 
 	if(rippledelay)
 		--rippledelay;
 	else
 	{
-		add_rgb();
+		h=lfsr&0x1ffff;
+		add_hsv(h+0x20000,lfsr&255);
+		CYCLE_LFSR
 		rippledelay=lfsr&63;
 	}
 	upload_simple(0,0,0);
@@ -353,7 +355,7 @@ void fire_update()
 	h=lfsr&0x3fff;
 	hsvtorgb(h+0x1fff,&redt,&greent,&bluet);
 	CYCLE_LFSR
-	i=24+lfsr&7;
+	i=60+lfsr&3;
 	upload_simple((redt*i)>>16,(greent*i)>>16,(bluet*i)>>16);
 	merge_iteration(&ripr);
 	merge_iteration(&ripg);
@@ -400,7 +402,7 @@ int main(int argc, char **argv)
 				break;
 		}
 
-		for(i=0;i<5000;++i)
+		for(i=0;i<7500;++i)
 			c=HW_UART(REG_UART);			
 	}
 
