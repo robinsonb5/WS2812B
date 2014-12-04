@@ -29,7 +29,10 @@ entity LEDString is
 		-- UART
 		rxd	: in std_logic;
 		txd	: out std_logic;
-		
+
+		-- IO
+		sw : in std_logic_vector(3 downto 0);
+		button : in std_logic;
 		led_tx : out std_logic
 	);
 end entity;
@@ -200,7 +203,7 @@ end process;
 
 	myrom : entity work.WS2812B_ROM
 	generic map (
-		maxAddrBitBRAM => 11
+		maxAddrBitBRAM => 12
 	)
 	port map (
 		clk => clk,
@@ -238,7 +241,7 @@ port map (
 		IMPL_XOR => true,
 		REMAP_STACK => true,
 		EXECUTE_RAM => true, -- We can save some LEs by omitting Execute from RAM support
-		maxAddrBitBRAM => 11
+		maxAddrBitBRAM => 12
 	)
 	port map (
 		clk                 => clk,
@@ -318,7 +321,11 @@ begin
 							mem_read(9 downto 0)<=ser_rxrecv&ser_txready&ser_rxdata;
 							ser_rxrecv<='0';	-- Clear rx flag.
 							mem_busy<='0';
-							
+						when X"F8" => -- Switches / buttons
+							mem_read<=(others=>'0');
+							mem_read(7 downto 4)<=sw;
+							mem_read(0)<=button;
+							mem_busy<='0';
 --								when X"C0" => -- Millisecond counter
 --									mem_read<=std_logic_vector(millisecond_counter);
 --									mem_busy<='0';

@@ -87,6 +87,9 @@ myproject : entity work.LEDString
 			rxd => UART_RXD,
 			txd => UART_TXD,
 			
+			-- IO
+			sw => ck,
+			button => key1,
 			led_tx => LED_TX
 		);
 
